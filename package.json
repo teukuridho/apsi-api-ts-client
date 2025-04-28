@@ -1,0 +1,24 @@
+{
+  "name": "apsi-api-ts-client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "url": "^0.11.4"
+  },
+  "devDependencies": {
+    "@types/isomorphic-fetch": "^0.0.39",
+    "@types/node": "^22.13.1",
+    "typescript": "^5.7.3"
+  },
+  "files": [
+    "dist"
+  ]
+}
