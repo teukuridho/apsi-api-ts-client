@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { FileDto } from './FileDto';
+import {
+    FileDtoFromJSON,
+    FileDtoFromJSONTyped,
+    FileDtoToJSON,
+    FileDtoToJSONTyped,
+} from './FileDto';
 import type { BookCategoryDto } from './BookCategoryDto';
 import {
     BookCategoryDtoFromJSON,
@@ -77,10 +84,10 @@ export interface BookDto {
     file?: string;
     /**
      * 
-     * @type {Array<string>}
+     * @type {Array<FileDto>}
      * @memberof BookDto
      */
-    photoFiles: Array<string>;
+    photoFiles: Array<FileDto>;
 }
 
 /**
@@ -113,7 +120,7 @@ export function BookDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): B
         'language': json['language'] == null ? undefined : json['language'],
         'categories': (new Set((json['categories'] as Array<any>).map(BookCategoryDtoFromJSON))),
         'file': json['file'] == null ? undefined : json['file'],
-        'photoFiles': json['photoFiles'],
+        'photoFiles': ((json['photoFiles'] as Array<any>).map(FileDtoFromJSON)),
     };
 }
 
@@ -136,7 +143,7 @@ export function BookDtoToJSONTyped(value?: BookDto | null, ignoreDiscriminator: 
         'language': value['language'],
         'categories': (Array.from(value['categories'] as Set<any>).map(BookCategoryDtoToJSON)),
         'file': value['file'],
-        'photoFiles': value['photoFiles'],
+        'photoFiles': ((value['photoFiles'] as Array<any>).map(FileDtoToJSON)),
     };
 }
 

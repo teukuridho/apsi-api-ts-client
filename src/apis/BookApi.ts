@@ -16,51 +16,85 @@
 import * as runtime from '../runtime';
 import type {
   ApiResponseBookDto,
+  ApiResponseFileDto,
+  ApiResponseListFileDto,
   ApiResponsePageInfoResponseBookDto,
   ApiResponseVoid,
+  CreateBookFileRequest,
+  CreateBookPhotosRequest,
+  CreateBookRequest,
+  DeleteBookPhotosRequest,
   GetBooksFilter,
   Pageable,
+  ReplaceBookFileRequest,
+  UpdateBookPhotoOrdersRequest,
+  UpdateBookRequest,
 } from '../models/index';
 import {
     ApiResponseBookDtoFromJSON,
     ApiResponseBookDtoToJSON,
+    ApiResponseFileDtoFromJSON,
+    ApiResponseFileDtoToJSON,
+    ApiResponseListFileDtoFromJSON,
+    ApiResponseListFileDtoToJSON,
     ApiResponsePageInfoResponseBookDtoFromJSON,
     ApiResponsePageInfoResponseBookDtoToJSON,
     ApiResponseVoidFromJSON,
     ApiResponseVoidToJSON,
+    CreateBookFileRequestFromJSON,
+    CreateBookFileRequestToJSON,
+    CreateBookPhotosRequestFromJSON,
+    CreateBookPhotosRequestToJSON,
+    CreateBookRequestFromJSON,
+    CreateBookRequestToJSON,
+    DeleteBookPhotosRequestFromJSON,
+    DeleteBookPhotosRequestToJSON,
     GetBooksFilterFromJSON,
     GetBooksFilterToJSON,
     PageableFromJSON,
     PageableToJSON,
+    ReplaceBookFileRequestFromJSON,
+    ReplaceBookFileRequestToJSON,
+    UpdateBookPhotoOrdersRequestFromJSON,
+    UpdateBookPhotoOrdersRequestToJSON,
+    UpdateBookRequestFromJSON,
+    UpdateBookRequestToJSON,
 } from '../models/index';
 
-export interface CreateBookRequest {
-    title: string;
-    author: string;
-    isbn: string;
-    publisher: string;
-    language: string;
-    categoryIds: Set<number>;
-    coverPhotoIndex: number;
-    file?: Blob;
-    photos?: Array<Blob>;
+export interface CreateBookOperationRequest {
+    createBookRequest: CreateBookRequest;
+}
+
+export interface CreateBookFileOperationRequest {
+    request: CreateBookFileRequest;
+    bookId: number;
+}
+
+export interface CreateBookPhotoFilesRequest {
+    request: CreateBookPhotosRequest;
+    bookId: number;
 }
 
 export interface DeleteBookRequest {
     bookId: number;
 }
 
-export interface GetBookRequest {
+export interface DeleteBookPhotosOperationRequest {
+    bookId: number;
+    request: DeleteBookPhotosRequest;
+}
+
+export interface DownloadBookFileRequest {
     bookId: number;
 }
 
-export interface GetBookFileRequest {
-    bookId: number;
-}
-
-export interface GetBookPhotoFileRequest {
+export interface DownloadBookPhotoRequest {
     bookId: number;
     photoId: number;
+}
+
+export interface GetBookRequest {
+    bookId: number;
 }
 
 export interface GetBooksRequest {
@@ -68,15 +102,19 @@ export interface GetBooksRequest {
     pageable: Pageable;
 }
 
-export interface UpdateBookRequest {
+export interface ReplaceBookFileOperationRequest {
+    request: ReplaceBookFileRequest;
     bookId: number;
-    title?: string | null;
-    author?: string | null;
-    isbn?: string | null;
-    publisher?: string | null;
-    language?: string | null;
-    categoryIds?: Set<number | null> | null;
-    file?: Blob;
+}
+
+export interface UpdateBookOperationRequest {
+    bookId: number;
+    updateBookRequest: UpdateBookRequest;
+}
+
+export interface UpdateBookPhotoOrdersOperationRequest {
+    bookId: number;
+    updateBookPhotoOrdersRequest: UpdateBookPhotoOrdersRequest;
 }
 
 /**
@@ -87,57 +125,70 @@ export class BookApi extends runtime.BaseAPI {
     /**
      * Create a book
      */
-    async createBookRaw(requestParameters: CreateBookRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponseBookDto>> {
-        if (requestParameters['title'] == null) {
+    async createBookRaw(requestParameters: CreateBookOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponseBookDto>> {
+        if (requestParameters['createBookRequest'] == null) {
             throw new runtime.RequiredError(
-                'title',
-                'Required parameter "title" was null or undefined when calling createBook().'
-            );
-        }
-
-        if (requestParameters['author'] == null) {
-            throw new runtime.RequiredError(
-                'author',
-                'Required parameter "author" was null or undefined when calling createBook().'
-            );
-        }
-
-        if (requestParameters['isbn'] == null) {
-            throw new runtime.RequiredError(
-                'isbn',
-                'Required parameter "isbn" was null or undefined when calling createBook().'
-            );
-        }
-
-        if (requestParameters['publisher'] == null) {
-            throw new runtime.RequiredError(
-                'publisher',
-                'Required parameter "publisher" was null or undefined when calling createBook().'
-            );
-        }
-
-        if (requestParameters['language'] == null) {
-            throw new runtime.RequiredError(
-                'language',
-                'Required parameter "language" was null or undefined when calling createBook().'
-            );
-        }
-
-        if (requestParameters['categoryIds'] == null) {
-            throw new runtime.RequiredError(
-                'categoryIds',
-                'Required parameter "categoryIds" was null or undefined when calling createBook().'
-            );
-        }
-
-        if (requestParameters['coverPhotoIndex'] == null) {
-            throw new runtime.RequiredError(
-                'coverPhotoIndex',
-                'Required parameter "coverPhotoIndex" was null or undefined when calling createBook().'
+                'createBookRequest',
+                'Required parameter "createBookRequest" was null or undefined when calling createBook().'
             );
         }
 
         const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/books`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CreateBookRequestToJSON(requestParameters['createBookRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiResponseBookDtoFromJSON(jsonValue));
+    }
+
+    /**
+     * Create a book
+     */
+    async createBook(requestParameters: CreateBookOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponseBookDto> {
+        const response = await this.createBookRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Create a book file
+     */
+    async createBookFileRaw(requestParameters: CreateBookFileOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponseFileDto>> {
+        if (requestParameters['request'] == null) {
+            throw new runtime.RequiredError(
+                'request',
+                'Required parameter "request" was null or undefined when calling createBookFile().'
+            );
+        }
+
+        if (requestParameters['bookId'] == null) {
+            throw new runtime.RequiredError(
+                'bookId',
+                'Required parameter "bookId" was null or undefined when calling createBookFile().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['request'] != null) {
+            queryParameters['request'] = requestParameters['request'];
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -149,78 +200,73 @@ export class BookApi extends runtime.BaseAPI {
                 headerParameters["Authorization"] = `Bearer ${tokenString}`;
             }
         }
-        const consumes: runtime.Consume[] = [
-            { contentType: 'multipart/form-data' },
-        ];
-        // @ts-ignore: canConsumeForm may be unused
-        const canConsumeForm = runtime.canConsumeForm(consumes);
-
-        let formParams: { append(param: string, value: any): any };
-        let useForm = false;
-        // use FormData to transmit files using content-type "multipart/form-data"
-        useForm = canConsumeForm;
-        // use FormData to transmit files using content-type "multipart/form-data"
-        useForm = canConsumeForm;
-        if (useForm) {
-            formParams = new FormData();
-        } else {
-            formParams = new URLSearchParams();
-        }
-
-        if (requestParameters['title'] != null) {
-            formParams.append('title', requestParameters['title'] as any);
-        }
-
-        if (requestParameters['author'] != null) {
-            formParams.append('author', requestParameters['author'] as any);
-        }
-
-        if (requestParameters['isbn'] != null) {
-            formParams.append('isbn', requestParameters['isbn'] as any);
-        }
-
-        if (requestParameters['publisher'] != null) {
-            formParams.append('publisher', requestParameters['publisher'] as any);
-        }
-
-        if (requestParameters['language'] != null) {
-            formParams.append('language', requestParameters['language'] as any);
-        }
-
-        if (requestParameters['categoryIds'] != null) {
-            formParams.append('categoryIds', Array.from(requestParameters['categoryIds'])!.join(runtime.COLLECTION_FORMATS["csv"]));
-        }
-
-        if (requestParameters['file'] != null) {
-            formParams.append('file', requestParameters['file'] as any);
-        }
-
-        if (requestParameters['photos'] != null) {
-            requestParameters['photos'].forEach((element) => {
-                formParams.append('photos', element as any);
-            })
-        }
-
-        if (requestParameters['coverPhotoIndex'] != null) {
-            formParams.append('coverPhotoIndex', requestParameters['coverPhotoIndex'] as any);
-        }
-
         const response = await this.request({
-            path: `/books`,
+            path: `/books/{bookId}/file`.replace(`{${"bookId"}}`, encodeURIComponent(String(requestParameters['bookId']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-            body: formParams,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ApiResponseBookDtoFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiResponseFileDtoFromJSON(jsonValue));
     }
 
     /**
-     * Create a book
+     * Create a book file
      */
-    async createBook(requestParameters: CreateBookRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponseBookDto> {
-        const response = await this.createBookRaw(requestParameters, initOverrides);
+    async createBookFile(requestParameters: CreateBookFileOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponseFileDto> {
+        const response = await this.createBookFileRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Create book photos
+     */
+    async createBookPhotoFilesRaw(requestParameters: CreateBookPhotoFilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponseListFileDto>> {
+        if (requestParameters['request'] == null) {
+            throw new runtime.RequiredError(
+                'request',
+                'Required parameter "request" was null or undefined when calling createBookPhotoFiles().'
+            );
+        }
+
+        if (requestParameters['bookId'] == null) {
+            throw new runtime.RequiredError(
+                'bookId',
+                'Required parameter "bookId" was null or undefined when calling createBookPhotoFiles().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['request'] != null) {
+            queryParameters['request'] = requestParameters['request'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/books/{bookId}/photos`.replace(`{${"bookId"}}`, encodeURIComponent(String(requestParameters['bookId']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiResponseListFileDtoFromJSON(jsonValue));
+    }
+
+    /**
+     * Create book photos
+     */
+    async createBookPhotoFiles(requestParameters: CreateBookPhotoFilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponseListFileDto> {
+        const response = await this.createBookPhotoFilesRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -266,6 +312,147 @@ export class BookApi extends runtime.BaseAPI {
     }
 
     /**
+     * Delete book photos by IDs
+     */
+    async deleteBookPhotosRaw(requestParameters: DeleteBookPhotosOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponseVoid>> {
+        if (requestParameters['bookId'] == null) {
+            throw new runtime.RequiredError(
+                'bookId',
+                'Required parameter "bookId" was null or undefined when calling deleteBookPhotos().'
+            );
+        }
+
+        if (requestParameters['request'] == null) {
+            throw new runtime.RequiredError(
+                'request',
+                'Required parameter "request" was null or undefined when calling deleteBookPhotos().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['request'] != null) {
+            queryParameters['request'] = requestParameters['request'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/books/{bookId}/photos`.replace(`{${"bookId"}}`, encodeURIComponent(String(requestParameters['bookId']))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiResponseVoidFromJSON(jsonValue));
+    }
+
+    /**
+     * Delete book photos by IDs
+     */
+    async deleteBookPhotos(requestParameters: DeleteBookPhotosOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponseVoid> {
+        const response = await this.deleteBookPhotosRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Download a book file
+     */
+    async downloadBookFileRaw(requestParameters: DownloadBookFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
+        if (requestParameters['bookId'] == null) {
+            throw new runtime.RequiredError(
+                'bookId',
+                'Required parameter "bookId" was null or undefined when calling downloadBookFile().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/books/{bookId}/file/download`.replace(`{${"bookId"}}`, encodeURIComponent(String(requestParameters['bookId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.BlobApiResponse(response);
+    }
+
+    /**
+     * Download a book file
+     */
+    async downloadBookFile(requestParameters: DownloadBookFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.downloadBookFileRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Download a book photo
+     */
+    async downloadBookPhotoRaw(requestParameters: DownloadBookPhotoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
+        if (requestParameters['bookId'] == null) {
+            throw new runtime.RequiredError(
+                'bookId',
+                'Required parameter "bookId" was null or undefined when calling downloadBookPhoto().'
+            );
+        }
+
+        if (requestParameters['photoId'] == null) {
+            throw new runtime.RequiredError(
+                'photoId',
+                'Required parameter "photoId" was null or undefined when calling downloadBookPhoto().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/books/{bookId}/photos/{photoId}/download`.replace(`{${"bookId"}}`, encodeURIComponent(String(requestParameters['bookId']))).replace(`{${"photoId"}}`, encodeURIComponent(String(requestParameters['photoId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.BlobApiResponse(response);
+    }
+
+    /**
+     * Download a book photo
+     */
+    async downloadBookPhoto(requestParameters: DownloadBookPhotoRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.downloadBookPhotoRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Get a book by ID
      */
     async getBookRaw(requestParameters: GetBookRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponseBookDto>> {
@@ -303,95 +490,6 @@ export class BookApi extends runtime.BaseAPI {
      */
     async getBook(requestParameters: GetBookRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponseBookDto> {
         const response = await this.getBookRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Download a book
-     */
-    async getBookFileRaw(requestParameters: GetBookFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
-        if (requestParameters['bookId'] == null) {
-            throw new runtime.RequiredError(
-                'bookId',
-                'Required parameter "bookId" was null or undefined when calling getBookFile().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/books/{bookId}/file`.replace(`{${"bookId"}}`, encodeURIComponent(String(requestParameters['bookId']))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.BlobApiResponse(response);
-    }
-
-    /**
-     * Download a book
-     */
-    async getBookFile(requestParameters: GetBookFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
-        const response = await this.getBookFileRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Download a book photo
-     */
-    async getBookPhotoFileRaw(requestParameters: GetBookPhotoFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
-        if (requestParameters['bookId'] == null) {
-            throw new runtime.RequiredError(
-                'bookId',
-                'Required parameter "bookId" was null or undefined when calling getBookPhotoFile().'
-            );
-        }
-
-        if (requestParameters['photoId'] == null) {
-            throw new runtime.RequiredError(
-                'photoId',
-                'Required parameter "photoId" was null or undefined when calling getBookPhotoFile().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("bearerAuth", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/books/{bookId}/photos/{photoId}`.replace(`{${"bookId"}}`, encodeURIComponent(String(requestParameters['bookId']))).replace(`{${"photoId"}}`, encodeURIComponent(String(requestParameters['photoId']))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.BlobApiResponse(response);
-    }
-
-    /**
-     * Download a book photo
-     */
-    async getBookPhotoFile(requestParameters: GetBookPhotoFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
-        const response = await this.getBookPhotoFileRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -452,17 +550,28 @@ export class BookApi extends runtime.BaseAPI {
     }
 
     /**
-     * Update a book
+     * Replace a book file
      */
-    async updateBookRaw(requestParameters: UpdateBookRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponseBookDto>> {
+    async replaceBookFileRaw(requestParameters: ReplaceBookFileOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponseFileDto>> {
+        if (requestParameters['request'] == null) {
+            throw new runtime.RequiredError(
+                'request',
+                'Required parameter "request" was null or undefined when calling replaceBookFile().'
+            );
+        }
+
         if (requestParameters['bookId'] == null) {
             throw new runtime.RequiredError(
                 'bookId',
-                'Required parameter "bookId" was null or undefined when calling updateBook().'
+                'Required parameter "bookId" was null or undefined when calling replaceBookFile().'
             );
         }
 
         const queryParameters: any = {};
+
+        if (requestParameters['request'] != null) {
+            queryParameters['request'] = requestParameters['request'];
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -474,56 +583,62 @@ export class BookApi extends runtime.BaseAPI {
                 headerParameters["Authorization"] = `Bearer ${tokenString}`;
             }
         }
-        const consumes: runtime.Consume[] = [
-            { contentType: 'multipart/form-data' },
-        ];
-        // @ts-ignore: canConsumeForm may be unused
-        const canConsumeForm = runtime.canConsumeForm(consumes);
+        const response = await this.request({
+            path: `/books/{bookId}/file`.replace(`{${"bookId"}}`, encodeURIComponent(String(requestParameters['bookId']))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
 
-        let formParams: { append(param: string, value: any): any };
-        let useForm = false;
-        // use FormData to transmit files using content-type "multipart/form-data"
-        useForm = canConsumeForm;
-        if (useForm) {
-            formParams = new FormData();
-        } else {
-            formParams = new URLSearchParams();
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiResponseFileDtoFromJSON(jsonValue));
+    }
+
+    /**
+     * Replace a book file
+     */
+    async replaceBookFile(requestParameters: ReplaceBookFileOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponseFileDto> {
+        const response = await this.replaceBookFileRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Update a book
+     */
+    async updateBookRaw(requestParameters: UpdateBookOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponseBookDto>> {
+        if (requestParameters['bookId'] == null) {
+            throw new runtime.RequiredError(
+                'bookId',
+                'Required parameter "bookId" was null or undefined when calling updateBook().'
+            );
         }
 
-        if (requestParameters['title'] != null) {
-            formParams.append('title', requestParameters['title'] as any);
+        if (requestParameters['updateBookRequest'] == null) {
+            throw new runtime.RequiredError(
+                'updateBookRequest',
+                'Required parameter "updateBookRequest" was null or undefined when calling updateBook().'
+            );
         }
 
-        if (requestParameters['author'] != null) {
-            formParams.append('author', requestParameters['author'] as any);
-        }
+        const queryParameters: any = {};
 
-        if (requestParameters['isbn'] != null) {
-            formParams.append('isbn', requestParameters['isbn'] as any);
-        }
+        const headerParameters: runtime.HTTPHeaders = {};
 
-        if (requestParameters['publisher'] != null) {
-            formParams.append('publisher', requestParameters['publisher'] as any);
-        }
+        headerParameters['Content-Type'] = 'application/json';
 
-        if (requestParameters['language'] != null) {
-            formParams.append('language', requestParameters['language'] as any);
-        }
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
 
-        if (requestParameters['categoryIds'] != null) {
-            formParams.append('categoryIds', Array.from(requestParameters['categoryIds'])!.join(runtime.COLLECTION_FORMATS["csv"]));
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
         }
-
-        if (requestParameters['file'] != null) {
-            formParams.append('file', requestParameters['file'] as any);
-        }
-
         const response = await this.request({
             path: `/books/{bookId}`.replace(`{${"bookId"}}`, encodeURIComponent(String(requestParameters['bookId']))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
-            body: formParams,
+            body: UpdateBookRequestToJSON(requestParameters['updateBookRequest']),
         }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiResponseBookDtoFromJSON(jsonValue));
@@ -532,8 +647,59 @@ export class BookApi extends runtime.BaseAPI {
     /**
      * Update a book
      */
-    async updateBook(requestParameters: UpdateBookRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponseBookDto> {
+    async updateBook(requestParameters: UpdateBookOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponseBookDto> {
         const response = await this.updateBookRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Update book photos orders
+     */
+    async updateBookPhotoOrdersRaw(requestParameters: UpdateBookPhotoOrdersOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponseVoid>> {
+        if (requestParameters['bookId'] == null) {
+            throw new runtime.RequiredError(
+                'bookId',
+                'Required parameter "bookId" was null or undefined when calling updateBookPhotoOrders().'
+            );
+        }
+
+        if (requestParameters['updateBookPhotoOrdersRequest'] == null) {
+            throw new runtime.RequiredError(
+                'updateBookPhotoOrdersRequest',
+                'Required parameter "updateBookPhotoOrdersRequest" was null or undefined when calling updateBookPhotoOrders().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/books/{bookId}/photos/orders`.replace(`{${"bookId"}}`, encodeURIComponent(String(requestParameters['bookId']))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UpdateBookPhotoOrdersRequestToJSON(requestParameters['updateBookPhotoOrdersRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiResponseVoidFromJSON(jsonValue));
+    }
+
+    /**
+     * Update book photos orders
+     */
+    async updateBookPhotoOrders(requestParameters: UpdateBookPhotoOrdersOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponseVoid> {
+        const response = await this.updateBookPhotoOrdersRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

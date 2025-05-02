@@ -31,12 +31,6 @@ export interface CreateSubjectRequest {
      * @memberof CreateSubjectRequest
      */
     gradeLevel: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof CreateSubjectRequest
-     */
-    schoolId: number;
 }
 
 /**
@@ -45,7 +39,6 @@ export interface CreateSubjectRequest {
 export function instanceOfCreateSubjectRequest(value: object): value is CreateSubjectRequest {
     if (!('name' in value) || value['name'] === undefined) return false;
     if (!('gradeLevel' in value) || value['gradeLevel'] === undefined) return false;
-    if (!('schoolId' in value) || value['schoolId'] === undefined) return false;
     return true;
 }
 
@@ -61,7 +54,6 @@ export function CreateSubjectRequestFromJSONTyped(json: any, ignoreDiscriminator
         
         'name': json['name'],
         'gradeLevel': json['gradeLevel'],
-        'schoolId': json['schoolId'],
     };
 }
 
@@ -78,7 +70,6 @@ export function CreateSubjectRequestToJSONTyped(value?: CreateSubjectRequest | n
         
         'name': value['name'],
         'gradeLevel': value['gradeLevel'],
-        'schoolId': value['schoolId'],
     };
 }
 

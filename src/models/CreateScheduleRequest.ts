@@ -24,12 +24,6 @@ export interface CreateScheduleRequest {
      * @type {number}
      * @memberof CreateScheduleRequest
      */
-    schoolId?: number | null;
-    /**
-     * 
-     * @type {number}
-     * @memberof CreateScheduleRequest
-     */
     classRoomId: number;
     /**
      * 
@@ -93,7 +87,6 @@ export function CreateScheduleRequestFromJSONTyped(json: any, ignoreDiscriminato
     }
     return {
         
-        'schoolId': json['schoolId'] == null ? undefined : json['schoolId'],
         'classRoomId': json['classRoomId'],
         'teacherId': json['teacherId'],
         'subjectId': json['subjectId'],
@@ -115,7 +108,6 @@ export function CreateScheduleRequestToJSONTyped(value?: CreateScheduleRequest |
 
     return {
         
-        'schoolId': value['schoolId'],
         'classRoomId': value['classRoomId'],
         'teacherId': value['teacherId'],
         'subjectId': value['subjectId'],

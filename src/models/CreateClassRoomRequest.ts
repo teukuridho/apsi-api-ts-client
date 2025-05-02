@@ -21,12 +21,6 @@ import { mapValues } from '../runtime';
 export interface CreateClassRoomRequest {
     /**
      * 
-     * @type {number}
-     * @memberof CreateClassRoomRequest
-     */
-    schoolId?: number | null;
-    /**
-     * 
      * @type {string}
      * @memberof CreateClassRoomRequest
      */
@@ -65,7 +59,6 @@ export function CreateClassRoomRequestFromJSONTyped(json: any, ignoreDiscriminat
     }
     return {
         
-        'schoolId': json['schoolId'] == null ? undefined : json['schoolId'],
         'name': json['name'],
         'teacherId': json['teacherId'],
         'studentIds': json['studentIds'],
@@ -83,7 +76,6 @@ export function CreateClassRoomRequestToJSONTyped(value?: CreateClassRoomRequest
 
     return {
         
-        'schoolId': value['schoolId'],
         'name': value['name'],
         'teacherId': value['teacherId'],
         'studentIds': value['studentIds'],

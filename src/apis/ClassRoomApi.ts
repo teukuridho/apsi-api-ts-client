@@ -20,7 +20,6 @@ import type {
   ApiResponseVoid,
   CreateClassRoomRequest,
   GetClassRoomsFilter,
-  GetClassRoomsRequest,
   Pageable,
   UpdateClassRoomRequest,
 } from '../models/index';
@@ -35,8 +34,6 @@ import {
     CreateClassRoomRequestToJSON,
     GetClassRoomsFilterFromJSON,
     GetClassRoomsFilterToJSON,
-    GetClassRoomsRequestFromJSON,
-    GetClassRoomsRequestToJSON,
     PageableFromJSON,
     PageableToJSON,
     UpdateClassRoomRequestFromJSON,
@@ -57,7 +54,6 @@ export interface GetClassRoomByIdRequest {
 
 export interface GetClassroomsRequest {
     filter: GetClassRoomsFilter;
-    request: GetClassRoomsRequest;
     pageable: Pageable;
 }
 
@@ -208,13 +204,6 @@ export class ClassRoomApi extends runtime.BaseAPI {
             );
         }
 
-        if (requestParameters['request'] == null) {
-            throw new runtime.RequiredError(
-                'request',
-                'Required parameter "request" was null or undefined when calling getClassrooms().'
-            );
-        }
-
         if (requestParameters['pageable'] == null) {
             throw new runtime.RequiredError(
                 'pageable',
@@ -226,10 +215,6 @@ export class ClassRoomApi extends runtime.BaseAPI {
 
         if (requestParameters['filter'] != null) {
             queryParameters['filter'] = requestParameters['filter'];
-        }
-
-        if (requestParameters['request'] != null) {
-            queryParameters['request'] = requestParameters['request'];
         }
 
         if (requestParameters['pageable'] != null) {
