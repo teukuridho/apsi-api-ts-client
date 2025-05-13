@@ -24,8 +24,6 @@ import type {
   CreateBookPhotosRequest,
   CreateBookRequest,
   DeleteBookPhotosRequest,
-  GetBooksFilter,
-  Pageable,
   ReplaceBookFileRequest,
   UpdateBookPhotoOrdersRequest,
   UpdateBookRequest,
@@ -49,10 +47,6 @@ import {
     CreateBookRequestToJSON,
     DeleteBookPhotosRequestFromJSON,
     DeleteBookPhotosRequestToJSON,
-    GetBooksFilterFromJSON,
-    GetBooksFilterToJSON,
-    PageableFromJSON,
-    PageableToJSON,
     ReplaceBookFileRequestFromJSON,
     ReplaceBookFileRequestToJSON,
     UpdateBookPhotoOrdersRequestFromJSON,
@@ -98,8 +92,14 @@ export interface GetBookRequest {
 }
 
 export interface GetBooksRequest {
-    getBooksFilter: GetBooksFilter;
-    pageable: Pageable;
+    title?: string | null;
+    author?: string | null;
+    publisher?: string | null;
+    isbn?: string | null;
+    categoryIds?: Set<number> | null;
+    page?: number;
+    size?: number;
+    sort?: Array<string>;
 }
 
 export interface ReplaceBookFileOperationRequest {
@@ -497,28 +497,38 @@ export class BookApi extends runtime.BaseAPI {
      * Get books
      */
     async getBooksRaw(requestParameters: GetBooksRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponsePageInfoResponseBookDto>> {
-        if (requestParameters['getBooksFilter'] == null) {
-            throw new runtime.RequiredError(
-                'getBooksFilter',
-                'Required parameter "getBooksFilter" was null or undefined when calling getBooks().'
-            );
-        }
-
-        if (requestParameters['pageable'] == null) {
-            throw new runtime.RequiredError(
-                'pageable',
-                'Required parameter "pageable" was null or undefined when calling getBooks().'
-            );
-        }
-
         const queryParameters: any = {};
 
-        if (requestParameters['getBooksFilter'] != null) {
-            queryParameters['getBooksFilter'] = requestParameters['getBooksFilter'];
+        if (requestParameters['title'] != null) {
+            queryParameters['title'] = requestParameters['title'];
         }
 
-        if (requestParameters['pageable'] != null) {
-            queryParameters['pageable'] = requestParameters['pageable'];
+        if (requestParameters['author'] != null) {
+            queryParameters['author'] = requestParameters['author'];
+        }
+
+        if (requestParameters['publisher'] != null) {
+            queryParameters['publisher'] = requestParameters['publisher'];
+        }
+
+        if (requestParameters['isbn'] != null) {
+            queryParameters['isbn'] = requestParameters['isbn'];
+        }
+
+        if (requestParameters['categoryIds'] != null) {
+            queryParameters['categoryIds'] = requestParameters['categoryIds'];
+        }
+
+        if (requestParameters['page'] != null) {
+            queryParameters['page'] = requestParameters['page'];
+        }
+
+        if (requestParameters['size'] != null) {
+            queryParameters['size'] = requestParameters['size'];
+        }
+
+        if (requestParameters['sort'] != null) {
+            queryParameters['sort'] = requestParameters['sort'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -544,7 +554,7 @@ export class BookApi extends runtime.BaseAPI {
     /**
      * Get books
      */
-    async getBooks(requestParameters: GetBooksRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponsePageInfoResponseBookDto> {
+    async getBooks(requestParameters: GetBooksRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponsePageInfoResponseBookDto> {
         const response = await this.getBooksRaw(requestParameters, initOverrides);
         return await response.value();
     }

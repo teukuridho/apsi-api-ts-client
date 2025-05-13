@@ -19,8 +19,6 @@ import type {
   ApiResponsePageInfoResponseBookCategoryDto,
   ApiResponseVoid,
   CreateBookCategoryRequest,
-  GetBookCategoriesFilter,
-  Pageable,
   UpdateBookCategoryRequest,
 } from '../models/index';
 import {
@@ -32,10 +30,6 @@ import {
     ApiResponseVoidToJSON,
     CreateBookCategoryRequestFromJSON,
     CreateBookCategoryRequestToJSON,
-    GetBookCategoriesFilterFromJSON,
-    GetBookCategoriesFilterToJSON,
-    PageableFromJSON,
-    PageableToJSON,
     UpdateBookCategoryRequestFromJSON,
     UpdateBookCategoryRequestToJSON,
 } from '../models/index';
@@ -49,8 +43,10 @@ export interface DeleteBookCategoryRequest {
 }
 
 export interface GetBookCategoriesRequest {
-    getBookCategoriesFilter: GetBookCategoriesFilter;
-    pageable: Pageable;
+    name?: string | null;
+    page?: number;
+    size?: number;
+    sort?: Array<string>;
 }
 
 export interface GetBookCategoryRequest {
@@ -156,28 +152,22 @@ export class BookCategoriesApi extends runtime.BaseAPI {
      * Get book categories
      */
     async getBookCategoriesRaw(requestParameters: GetBookCategoriesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponsePageInfoResponseBookCategoryDto>> {
-        if (requestParameters['getBookCategoriesFilter'] == null) {
-            throw new runtime.RequiredError(
-                'getBookCategoriesFilter',
-                'Required parameter "getBookCategoriesFilter" was null or undefined when calling getBookCategories().'
-            );
-        }
-
-        if (requestParameters['pageable'] == null) {
-            throw new runtime.RequiredError(
-                'pageable',
-                'Required parameter "pageable" was null or undefined when calling getBookCategories().'
-            );
-        }
-
         const queryParameters: any = {};
 
-        if (requestParameters['getBookCategoriesFilter'] != null) {
-            queryParameters['getBookCategoriesFilter'] = requestParameters['getBookCategoriesFilter'];
+        if (requestParameters['name'] != null) {
+            queryParameters['name'] = requestParameters['name'];
         }
 
-        if (requestParameters['pageable'] != null) {
-            queryParameters['pageable'] = requestParameters['pageable'];
+        if (requestParameters['page'] != null) {
+            queryParameters['page'] = requestParameters['page'];
+        }
+
+        if (requestParameters['size'] != null) {
+            queryParameters['size'] = requestParameters['size'];
+        }
+
+        if (requestParameters['sort'] != null) {
+            queryParameters['sort'] = requestParameters['sort'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -203,7 +193,7 @@ export class BookCategoriesApi extends runtime.BaseAPI {
     /**
      * Get book categories
      */
-    async getBookCategories(requestParameters: GetBookCategoriesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponsePageInfoResponseBookCategoryDto> {
+    async getBookCategories(requestParameters: GetBookCategoriesRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponsePageInfoResponseBookCategoryDto> {
         const response = await this.getBookCategoriesRaw(requestParameters, initOverrides);
         return await response.value();
     }

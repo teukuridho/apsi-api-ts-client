@@ -19,8 +19,6 @@ import type {
   ApiResponseSubjectDto,
   ApiResponseVoid,
   CreateSubjectRequest,
-  GetSubjectsFilter,
-  Pageable,
   UpdateSubjectRequest,
 } from '../models/index';
 import {
@@ -32,10 +30,6 @@ import {
     ApiResponseVoidToJSON,
     CreateSubjectRequestFromJSON,
     CreateSubjectRequestToJSON,
-    GetSubjectsFilterFromJSON,
-    GetSubjectsFilterToJSON,
-    PageableFromJSON,
-    PageableToJSON,
     UpdateSubjectRequestFromJSON,
     UpdateSubjectRequestToJSON,
 } from '../models/index';
@@ -53,8 +47,11 @@ export interface GetSubjectByIdRequest {
 }
 
 export interface GetSubjectsRequest {
-    getSubjectsFilter: GetSubjectsFilter;
-    pageable: Pageable;
+    name?: string | null;
+    gradeLevel?: string | null;
+    page?: number;
+    size?: number;
+    sort?: Array<string>;
 }
 
 export interface UpdateSubjectOperationRequest {
@@ -197,28 +194,26 @@ export class SubjectApi extends runtime.BaseAPI {
      * Get subjects
      */
     async getSubjectsRaw(requestParameters: GetSubjectsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponsePageInfoResponseSubjectDto>> {
-        if (requestParameters['getSubjectsFilter'] == null) {
-            throw new runtime.RequiredError(
-                'getSubjectsFilter',
-                'Required parameter "getSubjectsFilter" was null or undefined when calling getSubjects().'
-            );
-        }
-
-        if (requestParameters['pageable'] == null) {
-            throw new runtime.RequiredError(
-                'pageable',
-                'Required parameter "pageable" was null or undefined when calling getSubjects().'
-            );
-        }
-
         const queryParameters: any = {};
 
-        if (requestParameters['getSubjectsFilter'] != null) {
-            queryParameters['getSubjectsFilter'] = requestParameters['getSubjectsFilter'];
+        if (requestParameters['name'] != null) {
+            queryParameters['name'] = requestParameters['name'];
         }
 
-        if (requestParameters['pageable'] != null) {
-            queryParameters['pageable'] = requestParameters['pageable'];
+        if (requestParameters['gradeLevel'] != null) {
+            queryParameters['gradeLevel'] = requestParameters['gradeLevel'];
+        }
+
+        if (requestParameters['page'] != null) {
+            queryParameters['page'] = requestParameters['page'];
+        }
+
+        if (requestParameters['size'] != null) {
+            queryParameters['size'] = requestParameters['size'];
+        }
+
+        if (requestParameters['sort'] != null) {
+            queryParameters['sort'] = requestParameters['sort'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -244,7 +239,7 @@ export class SubjectApi extends runtime.BaseAPI {
     /**
      * Get subjects
      */
-    async getSubjects(requestParameters: GetSubjectsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponsePageInfoResponseSubjectDto> {
+    async getSubjects(requestParameters: GetSubjectsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponsePageInfoResponseSubjectDto> {
         const response = await this.getSubjectsRaw(requestParameters, initOverrides);
         return await response.value();
     }

@@ -16,6 +16,7 @@
 import * as runtime from '../runtime';
 import type {
   ApiResponseLoginResponse,
+  ApiResponseUserDto,
   ApiResponseVoid,
   ChangePasswordRequest,
   LoginRequest,
@@ -23,6 +24,8 @@ import type {
 import {
     ApiResponseLoginResponseFromJSON,
     ApiResponseLoginResponseToJSON,
+    ApiResponseUserDtoFromJSON,
+    ApiResponseUserDtoToJSON,
     ApiResponseVoidFromJSON,
     ApiResponseVoidToJSON,
     ChangePasswordRequestFromJSON,
@@ -85,6 +88,40 @@ export class AuthenticationApi extends runtime.BaseAPI {
      */
     async changePassword(requestParameters: ChangePasswordOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponseVoid> {
         const response = await this.changePasswordRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get self user
+     */
+    async getSelfRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponseUserDto>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/auth/self`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiResponseUserDtoFromJSON(jsonValue));
+    }
+
+    /**
+     * Get self user
+     */
+    async getSelf(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponseUserDto> {
+        const response = await this.getSelfRaw(initOverrides);
         return await response.value();
     }
 

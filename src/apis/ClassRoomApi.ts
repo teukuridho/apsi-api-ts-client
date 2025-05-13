@@ -19,8 +19,6 @@ import type {
   ApiResponsePageInfoResponseClassRoomDto,
   ApiResponseVoid,
   CreateClassRoomRequest,
-  GetClassRoomsFilter,
-  Pageable,
   UpdateClassRoomRequest,
 } from '../models/index';
 import {
@@ -32,10 +30,6 @@ import {
     ApiResponseVoidToJSON,
     CreateClassRoomRequestFromJSON,
     CreateClassRoomRequestToJSON,
-    GetClassRoomsFilterFromJSON,
-    GetClassRoomsFilterToJSON,
-    PageableFromJSON,
-    PageableToJSON,
     UpdateClassRoomRequestFromJSON,
     UpdateClassRoomRequestToJSON,
 } from '../models/index';
@@ -53,8 +47,12 @@ export interface GetClassRoomByIdRequest {
 }
 
 export interface GetClassroomsRequest {
-    filter: GetClassRoomsFilter;
-    pageable: Pageable;
+    name?: string | null;
+    description?: string | null;
+    homeroomTeacherId?: number | null;
+    page?: number;
+    size?: number;
+    sort?: Array<string>;
 }
 
 export interface UpdateClassRoomOperationRequest {
@@ -197,28 +195,30 @@ export class ClassRoomApi extends runtime.BaseAPI {
      * Get classrooms
      */
     async getClassroomsRaw(requestParameters: GetClassroomsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponsePageInfoResponseClassRoomDto>> {
-        if (requestParameters['filter'] == null) {
-            throw new runtime.RequiredError(
-                'filter',
-                'Required parameter "filter" was null or undefined when calling getClassrooms().'
-            );
-        }
-
-        if (requestParameters['pageable'] == null) {
-            throw new runtime.RequiredError(
-                'pageable',
-                'Required parameter "pageable" was null or undefined when calling getClassrooms().'
-            );
-        }
-
         const queryParameters: any = {};
 
-        if (requestParameters['filter'] != null) {
-            queryParameters['filter'] = requestParameters['filter'];
+        if (requestParameters['name'] != null) {
+            queryParameters['name'] = requestParameters['name'];
         }
 
-        if (requestParameters['pageable'] != null) {
-            queryParameters['pageable'] = requestParameters['pageable'];
+        if (requestParameters['description'] != null) {
+            queryParameters['description'] = requestParameters['description'];
+        }
+
+        if (requestParameters['homeroomTeacherId'] != null) {
+            queryParameters['homeroomTeacherId'] = requestParameters['homeroomTeacherId'];
+        }
+
+        if (requestParameters['page'] != null) {
+            queryParameters['page'] = requestParameters['page'];
+        }
+
+        if (requestParameters['size'] != null) {
+            queryParameters['size'] = requestParameters['size'];
+        }
+
+        if (requestParameters['sort'] != null) {
+            queryParameters['sort'] = requestParameters['sort'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -244,7 +244,7 @@ export class ClassRoomApi extends runtime.BaseAPI {
     /**
      * Get classrooms
      */
-    async getClassrooms(requestParameters: GetClassroomsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponsePageInfoResponseClassRoomDto> {
+    async getClassrooms(requestParameters: GetClassroomsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponsePageInfoResponseClassRoomDto> {
         const response = await this.getClassroomsRaw(requestParameters, initOverrides);
         return await response.value();
     }
