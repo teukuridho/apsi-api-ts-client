@@ -52,8 +52,6 @@ models/CreateAssessmentItemRequest.ts
 models/CreateAssessmentRequest.ts
 models/CreateBatchStudentAssessmentRequest.ts
 models/CreateBookCategoryRequest.ts
-models/CreateBookFileRequest.ts
-models/CreateBookPhotosRequest.ts
 models/CreateBookRequest.ts
 models/CreateClassRoomRequest.ts
 models/CreateMultipleChoiceOptionRequest.ts

@@ -20,8 +20,6 @@ import type {
   ApiResponseListFileDto,
   ApiResponsePageInfoResponseBookDto,
   ApiResponseVoid,
-  CreateBookFileRequest,
-  CreateBookPhotosRequest,
   CreateBookRequest,
   DeleteBookPhotosRequest,
   ReplaceBookFileRequest,
@@ -39,10 +37,6 @@ import {
     ApiResponsePageInfoResponseBookDtoToJSON,
     ApiResponseVoidFromJSON,
     ApiResponseVoidToJSON,
-    CreateBookFileRequestFromJSON,
-    CreateBookFileRequestToJSON,
-    CreateBookPhotosRequestFromJSON,
-    CreateBookPhotosRequestToJSON,
     CreateBookRequestFromJSON,
     CreateBookRequestToJSON,
     DeleteBookPhotosRequestFromJSON,
@@ -59,14 +53,15 @@ export interface CreateBookOperationRequest {
     createBookRequest: CreateBookRequest;
 }
 
-export interface CreateBookFileOperationRequest {
-    request: CreateBookFileRequest;
+export interface CreateBookFileRequest {
     bookId: number;
+    file: Blob;
 }
 
 export interface CreateBookPhotoFilesRequest {
-    request: CreateBookPhotosRequest;
     bookId: number;
+    photos?: Array<Blob>;
+    photoOrders?: Array<number>;
 }
 
 export interface DeleteBookRequest {
@@ -169,14 +164,7 @@ export class BookApi extends runtime.BaseAPI {
     /**
      * Create a book file
      */
-    async createBookFileRaw(requestParameters: CreateBookFileOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponseFileDto>> {
-        if (requestParameters['request'] == null) {
-            throw new runtime.RequiredError(
-                'request',
-                'Required parameter "request" was null or undefined when calling createBookFile().'
-            );
-        }
-
+    async createBookFileRaw(requestParameters: CreateBookFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponseFileDto>> {
         if (requestParameters['bookId'] == null) {
             throw new runtime.RequiredError(
                 'bookId',
@@ -184,11 +172,14 @@ export class BookApi extends runtime.BaseAPI {
             );
         }
 
-        const queryParameters: any = {};
-
-        if (requestParameters['request'] != null) {
-            queryParameters['request'] = requestParameters['request'];
+        if (requestParameters['file'] == null) {
+            throw new runtime.RequiredError(
+                'file',
+                'Required parameter "file" was null or undefined when calling createBookFile().'
+            );
         }
+
+        const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -200,11 +191,32 @@ export class BookApi extends runtime.BaseAPI {
                 headerParameters["Authorization"] = `Bearer ${tokenString}`;
             }
         }
+        const consumes: runtime.Consume[] = [
+            { contentType: 'multipart/form-data' },
+        ];
+        // @ts-ignore: canConsumeForm may be unused
+        const canConsumeForm = runtime.canConsumeForm(consumes);
+
+        let formParams: { append(param: string, value: any): any };
+        let useForm = false;
+        // use FormData to transmit files using content-type "multipart/form-data"
+        useForm = canConsumeForm;
+        if (useForm) {
+            formParams = new FormData();
+        } else {
+            formParams = new URLSearchParams();
+        }
+
+        if (requestParameters['file'] != null) {
+            formParams.append('file', requestParameters['file'] as any);
+        }
+
         const response = await this.request({
             path: `/books/{bookId}/file`.replace(`{${"bookId"}}`, encodeURIComponent(String(requestParameters['bookId']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
+            body: formParams,
         }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiResponseFileDtoFromJSON(jsonValue));
@@ -213,7 +225,7 @@ export class BookApi extends runtime.BaseAPI {
     /**
      * Create a book file
      */
-    async createBookFile(requestParameters: CreateBookFileOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponseFileDto> {
+    async createBookFile(requestParameters: CreateBookFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponseFileDto> {
         const response = await this.createBookFileRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -222,13 +234,6 @@ export class BookApi extends runtime.BaseAPI {
      * Create book photos
      */
     async createBookPhotoFilesRaw(requestParameters: CreateBookPhotoFilesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponseListFileDto>> {
-        if (requestParameters['request'] == null) {
-            throw new runtime.RequiredError(
-                'request',
-                'Required parameter "request" was null or undefined when calling createBookPhotoFiles().'
-            );
-        }
-
         if (requestParameters['bookId'] == null) {
             throw new runtime.RequiredError(
                 'bookId',
@@ -238,10 +243,6 @@ export class BookApi extends runtime.BaseAPI {
 
         const queryParameters: any = {};
 
-        if (requestParameters['request'] != null) {
-            queryParameters['request'] = requestParameters['request'];
-        }
-
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && this.configuration.accessToken) {
@@ -252,11 +253,38 @@ export class BookApi extends runtime.BaseAPI {
                 headerParameters["Authorization"] = `Bearer ${tokenString}`;
             }
         }
+        const consumes: runtime.Consume[] = [
+            { contentType: 'multipart/form-data' },
+        ];
+        // @ts-ignore: canConsumeForm may be unused
+        const canConsumeForm = runtime.canConsumeForm(consumes);
+
+        let formParams: { append(param: string, value: any): any };
+        let useForm = false;
+        // use FormData to transmit files using content-type "multipart/form-data"
+        useForm = canConsumeForm;
+        if (useForm) {
+            formParams = new FormData();
+        } else {
+            formParams = new URLSearchParams();
+        }
+
+        if (requestParameters['photos'] != null) {
+            requestParameters['photos'].forEach((element) => {
+                formParams.append('photos', element as any);
+            })
+        }
+
+        if (requestParameters['photoOrders'] != null) {
+            formParams.append('photoOrders', requestParameters['photoOrders']!.join(runtime.COLLECTION_FORMATS["csv"]));
+        }
+
         const response = await this.request({
             path: `/books/{bookId}/photos`.replace(`{${"bookId"}}`, encodeURIComponent(String(requestParameters['bookId']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
+            body: formParams,
         }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiResponseListFileDtoFromJSON(jsonValue));

@@ -40,8 +40,6 @@ export * from './CreateAssessmentItemRequest';
 export * from './CreateAssessmentRequest';
 export * from './CreateBatchStudentAssessmentRequest';
 export * from './CreateBookCategoryRequest';
-export * from './CreateBookFileRequest';
-export * from './CreateBookPhotosRequest';
 export * from './CreateBookRequest';
 export * from './CreateClassRoomRequest';
 export * from './CreateMultipleChoiceOptionRequest';
