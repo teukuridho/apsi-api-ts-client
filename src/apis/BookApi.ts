@@ -21,8 +21,6 @@ import type {
   ApiResponsePageInfoResponseBookDto,
   ApiResponseVoid,
   CreateBookRequest,
-  DeleteBookPhotosRequest,
-  ReplaceBookFileRequest,
   UpdateBookPhotoOrdersRequest,
   UpdateBookRequest,
 } from '../models/index';
@@ -39,10 +37,6 @@ import {
     ApiResponseVoidToJSON,
     CreateBookRequestFromJSON,
     CreateBookRequestToJSON,
-    DeleteBookPhotosRequestFromJSON,
-    DeleteBookPhotosRequestToJSON,
-    ReplaceBookFileRequestFromJSON,
-    ReplaceBookFileRequestToJSON,
     UpdateBookPhotoOrdersRequestFromJSON,
     UpdateBookPhotoOrdersRequestToJSON,
     UpdateBookRequestFromJSON,
@@ -68,9 +62,9 @@ export interface DeleteBookRequest {
     bookId: number;
 }
 
-export interface DeleteBookPhotosOperationRequest {
+export interface DeleteBookPhotosRequest {
     bookId: number;
-    request: DeleteBookPhotosRequest;
+    photoIds: Array<number>;
 }
 
 export interface DownloadBookFileRequest {
@@ -97,9 +91,9 @@ export interface GetBooksRequest {
     sort?: Array<string>;
 }
 
-export interface ReplaceBookFileOperationRequest {
-    request: ReplaceBookFileRequest;
+export interface ReplaceBookFileRequest {
     bookId: number;
+    file?: Blob;
 }
 
 export interface UpdateBookOperationRequest {
@@ -342,7 +336,7 @@ export class BookApi extends runtime.BaseAPI {
     /**
      * Delete book photos by IDs
      */
-    async deleteBookPhotosRaw(requestParameters: DeleteBookPhotosOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponseVoid>> {
+    async deleteBookPhotosRaw(requestParameters: DeleteBookPhotosRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponseVoid>> {
         if (requestParameters['bookId'] == null) {
             throw new runtime.RequiredError(
                 'bookId',
@@ -350,17 +344,17 @@ export class BookApi extends runtime.BaseAPI {
             );
         }
 
-        if (requestParameters['request'] == null) {
+        if (requestParameters['photoIds'] == null) {
             throw new runtime.RequiredError(
-                'request',
-                'Required parameter "request" was null or undefined when calling deleteBookPhotos().'
+                'photoIds',
+                'Required parameter "photoIds" was null or undefined when calling deleteBookPhotos().'
             );
         }
 
         const queryParameters: any = {};
 
-        if (requestParameters['request'] != null) {
-            queryParameters['request'] = requestParameters['request'];
+        if (requestParameters['photoIds'] != null) {
+            queryParameters['photoIds'] = requestParameters['photoIds'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -386,7 +380,7 @@ export class BookApi extends runtime.BaseAPI {
     /**
      * Delete book photos by IDs
      */
-    async deleteBookPhotos(requestParameters: DeleteBookPhotosOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponseVoid> {
+    async deleteBookPhotos(requestParameters: DeleteBookPhotosRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponseVoid> {
         const response = await this.deleteBookPhotosRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -590,14 +584,7 @@ export class BookApi extends runtime.BaseAPI {
     /**
      * Replace a book file
      */
-    async replaceBookFileRaw(requestParameters: ReplaceBookFileOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponseFileDto>> {
-        if (requestParameters['request'] == null) {
-            throw new runtime.RequiredError(
-                'request',
-                'Required parameter "request" was null or undefined when calling replaceBookFile().'
-            );
-        }
-
+    async replaceBookFileRaw(requestParameters: ReplaceBookFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiResponseFileDto>> {
         if (requestParameters['bookId'] == null) {
             throw new runtime.RequiredError(
                 'bookId',
@@ -606,10 +593,6 @@ export class BookApi extends runtime.BaseAPI {
         }
 
         const queryParameters: any = {};
-
-        if (requestParameters['request'] != null) {
-            queryParameters['request'] = requestParameters['request'];
-        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -621,11 +604,32 @@ export class BookApi extends runtime.BaseAPI {
                 headerParameters["Authorization"] = `Bearer ${tokenString}`;
             }
         }
+        const consumes: runtime.Consume[] = [
+            { contentType: 'multipart/form-data' },
+        ];
+        // @ts-ignore: canConsumeForm may be unused
+        const canConsumeForm = runtime.canConsumeForm(consumes);
+
+        let formParams: { append(param: string, value: any): any };
+        let useForm = false;
+        // use FormData to transmit files using content-type "multipart/form-data"
+        useForm = canConsumeForm;
+        if (useForm) {
+            formParams = new FormData();
+        } else {
+            formParams = new URLSearchParams();
+        }
+
+        if (requestParameters['file'] != null) {
+            formParams.append('file', requestParameters['file'] as any);
+        }
+
         const response = await this.request({
             path: `/books/{bookId}/file`.replace(`{${"bookId"}}`, encodeURIComponent(String(requestParameters['bookId']))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
+            body: formParams,
         }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ApiResponseFileDtoFromJSON(jsonValue));
@@ -634,7 +638,7 @@ export class BookApi extends runtime.BaseAPI {
     /**
      * Replace a book file
      */
-    async replaceBookFile(requestParameters: ReplaceBookFileOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponseFileDto> {
+    async replaceBookFile(requestParameters: ReplaceBookFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiResponseFileDto> {
         const response = await this.replaceBookFileRaw(requestParameters, initOverrides);
         return await response.value();
     }

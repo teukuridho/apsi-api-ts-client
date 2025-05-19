@@ -33,12 +33,6 @@ export interface UpdateBookPhotoOrdersRequest {
      * @memberof UpdateBookPhotoOrdersRequest
      */
     fileOrders?: Array<FileOrderDto>;
-    /**
-     * 
-     * @type {number}
-     * @memberof UpdateBookPhotoOrdersRequest
-     */
-    stuff?: number;
 }
 
 /**
@@ -59,7 +53,6 @@ export function UpdateBookPhotoOrdersRequestFromJSONTyped(json: any, ignoreDiscr
     return {
         
         'fileOrders': json['fileOrders'] == null ? undefined : ((json['fileOrders'] as Array<any>).map(FileOrderDtoFromJSON)),
-        'stuff': json['stuff'] == null ? undefined : json['stuff'],
     };
 }
 
@@ -75,7 +68,6 @@ export function UpdateBookPhotoOrdersRequestToJSONTyped(value?: UpdateBookPhotoO
     return {
         
         'fileOrders': value['fileOrders'] == null ? undefined : ((value['fileOrders'] as Array<any>).map(FileOrderDtoToJSON)),
-        'stuff': value['stuff'],
     };
 }
 
